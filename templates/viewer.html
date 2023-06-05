@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>골목티비 - 관리자 모드</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js" type="text/javascript"></script>
+  <script src="/static/mqttio.js" type="text/javascript"></script>
+  <script src="/static/image.js" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <script>
+    window.addEventListener("load", function () {
+      // http://224..129:8080/에서 224...의 IP만 끊어내는 코드
+      var url = new String(document.location);
+      ip = (url.split("//"))[1]; // ip = "224...:8080/"
+      ip = (ip.split(":"))[0]; // ip = "224...'
+      document.getElementById("broker").value = ip
+    });
+  </script>
+  <style>
+    canvas {background-color:lightblue;}
+    input[type="text"]  {width: 102px; border-top: none; border-left: none; border-right: none; background-color:#CEF6D8; border-bottom: 3px #209E76;}
+    canvas.zoomed {
+      width: 720px;
+      height: 480px;
+    }
+
+    canvas.hidden {
+      display: none;
+    }
+
+    div.hidden {
+      display: none;
+    }
+
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Fixed position */
+      z-index: 1; /* Ensure it appears above other elements */
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto; /* Enable scrolling if content overflows */
+      background-color: (0,0,0,0.3); /* Semi-transparent background */
+    }
+
+    .modal-content {
+      background-color: #ff7777;
+      margin: 20px; /* Center the modal vertically and horizontally */
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+    }
+
+    /* Close button styles */
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    @keyframes blink-effect {
+        50% {
+         opacity: 0;
+         }
+        }
+    .blink {
+        animation: blink-effect 1s step-end infinite;
+        font-family: 'Black Han Sans', sans-serif;
+    }
+  </style>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+</head>
+<body style="background-color:#CEF6D8">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa" crossorigin="anonymous"></script>
+<div style="text-align:center">
+<br>
+<br>
+<img src="/static/AiCCTV.png" width="200" height="95"  alt="My Image">
+<form id="connection-form">
+  <br><b>Monitoring Center :</b>
+  <input id="broker" type="text" name="broker" value="">&nbsp
+  <div class="btn-group" role="group" aria-label="Basic outlined example">
+  <button type="button" class="btn btn-outline-success" onclick="startConnect()">Connect</button>
+  <button type="button" class="btn btn-outline-success" onclick="recognize()">action</button>
+  </div>
+</form>
+<hr>
+<table style="margin-left:auto;margin-right:auto;">
+        <tr>
+                <td><canvas id="myCanvas1" width="300" height="200" onclick="toggleZoom('myCanvas1')"></canvas></td>
+                <td><canvas id="myCanvas2" width="300" height="200" onclick="toggleZoom('myCanvas2')"></canvas> </td>
+        </tr>
+        <tr>
+                <td><div id="person1"></div> </td>
+                <td><div id="person2"></div> </td>
+        </tr>
+        <tr>
+                <td> <canvas id="myCanvas3" width="300" height="200" onclick="toggleZoom('myCanvas3')"></canvas> </td>
+                <td> <canvas id="myCanvas4" width="300" height="200" onclick="toggleZoom('myCanvas4')"></canvas> </td>
+        </tr>
+
+        <tr>
+                <td><div id="person3"></div> </td>
+                <td><div id="person4"></div> </td>
+</table>
+</div>
+<div id="alarm"></div>
+<div id="myModal" class="modal">
+  <div class="modal-content" style="background-color:#ff7777">
+    <span class="close" id="modalCloseBtn">&times;</span>
+    <h3 class="blink" style="text-align:center">&#128680;긴급 상황 알림</h3>
+    <p class="blink" style="text-align:center"><font size=+2>위급 상황이 감지되>었습니다. 확인바랍니다.</font></p>
+    <br>
+  </div>
+</div>
+<audio id="myAudio" src="/static/Alarm.mp3"></audio>
+</body>
+</html>
